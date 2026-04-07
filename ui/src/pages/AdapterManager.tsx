@@ -5,6 +5,7 @@
  * They just register a ServerAdapterModule that provides model discovery and execution.
  */
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Cpu, Plus, Power, Trash2, FolderOpen, Package, RefreshCw, Download } from "lucide-react";
 import { useCompany } from "@/context/CompanyContext";
@@ -185,6 +186,7 @@ function ReinstallDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation("settings");
   const { data: latestVersion, isLoading: isFetchingVersion } = useQuery({
     queryKey: ["npm-latest-version", adapter?.packageName],
     queryFn: () => {
@@ -203,10 +205,7 @@ function ReinstallDialog({
         <DialogHeader>
           <DialogTitle>Reinstall Adapter</DialogTitle>
           <DialogDescription>
-            This will pull the latest version of{" "}
-            <strong>{adapter?.packageName}</strong> from npm and hot-swap
-            the running adapter module. Existing agents will use the new
-            version on their next run.
+            {t("reinstallConfirm", { defaultValue: "This will pull the latest version of {{packageName}} from npm and hot-swap the running adapter module. Existing agents will use the new version on their next run.", packageName: adapter?.packageName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -233,14 +232,14 @@ function ReinstallDialog({
           </div>
           {isUpToDate && (
             <p className="text-xs text-muted-foreground pt-1">
-              Already on the latest version.
+              {t("alreadyLatest", { defaultValue: "Already on the latest version." })}
             </p>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isReinstalling}>
-            Cancel
+            {t("common:button.cancel", { defaultValue: "Cancel" })}
           </Button>
           <Button disabled={isReinstalling} onClick={onConfirm}>
             {isReinstalling ? "Reinstalling..." : "Reinstall"}
@@ -252,6 +251,7 @@ function ReinstallDialog({
 }
 
 export function AdapterManager() {
+  const { t } = useTranslation("settings");
   const { selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -400,7 +400,7 @@ export function AdapterManager() {
           <Cpu className="h-6 w-6 text-muted-foreground" />
           <h1 className="text-xl font-semibold">Adapters</h1>
           <Badge variant="outline" className="text-amber-600 border-amber-400">
-            Alpha
+            {t("alpha", { defaultValue: "Alpha" })}
           </Badge>
         </div>
 
@@ -408,7 +408,7 @@ export function AdapterManager() {
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              Install Adapter
+              {t("installAdapter", { defaultValue: "Install Adapter" })}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -445,7 +445,7 @@ export function AdapterManager() {
                   onClick={() => setIsLocalPath(true)}
                 >
                   <FolderOpen className="h-3.5 w-3.5" />
-                  Local path
+                  {t("localPath", { defaultValue: "Local path" })}
                 </button>
               </div>
 
@@ -474,7 +474,7 @@ export function AdapterManager() {
                     <Label htmlFor="adapterPackageName">Package Name</Label>
                     <Input
                       id="adapterPackageName"
-                      placeholder="my-paperclip-adapter"
+                      placeholder={t("packageNamePlaceholder", { defaultValue: "my-paperclip-adapter" })}
                       value={installPackage}
                       onChange={(e) => setInstallPackage(e.target.value)}
                     />
@@ -483,7 +483,7 @@ export function AdapterManager() {
                     <Label htmlFor="adapterVersion">Version (optional)</Label>
                     <Input
                       id="adapterVersion"
-                      placeholder="latest"
+                      placeholder={t("versionPlaceholder", { defaultValue: "latest" })}
                       value={installVersion}
                       onChange={(e) => setInstallVersion(e.target.value)}
                     />
@@ -515,10 +515,9 @@ export function AdapterManager() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
           <div className="space-y-1 text-sm">
-            <p className="font-medium text-foreground">External adapters are alpha.</p>
+            <p className="font-medium text-foreground">{t("alphaWarningTitle", { defaultValue: "External adapters are alpha." })}</p>
             <p className="text-muted-foreground">
-              The adapter plugin system is under active development. APIs and storage format may change.
-              Use the power icon to hide adapters from agent menus without removing them.
+              {t("alphaWarning", { defaultValue: "The adapter plugin system is under active development. APIs and storage format may change. Use the power icon to hide adapters from agent menus without removing them." })}
             </p>
           </div>
         </div>
@@ -537,7 +536,7 @@ export function AdapterManager() {
               <Cpu className="h-10 w-10 text-muted-foreground mb-4" />
               <p className="text-sm font-medium">No external adapters installed</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Install an adapter package to extend model support.
+                {t("installHint", { defaultValue: "Install an adapter package to extend model support." })}
               </p>
             </CardContent>
           </Card>
@@ -631,8 +630,7 @@ export function AdapterManager() {
           <DialogHeader>
             <DialogTitle>Remove Adapter</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove the <strong>{removeType}</strong> adapter?
-              It will be unregistered and removed from the adapter store.
+              {t("removeConfirm", { defaultValue: "Are you sure you want to remove the" })} <strong>{removeType}</strong> {t("removeConfirmSuffix", { defaultValue: "adapter? It will be unregistered and removed from the adapter store." })}
               {removeType && adapters?.find((a) => a.type === removeType)?.packageName && (
                 <> npm packages will be cleaned up from disk.</>
               )}

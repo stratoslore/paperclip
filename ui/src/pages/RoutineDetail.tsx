@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -150,6 +151,7 @@ function TriggerEditor({
   onRotate: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useTranslation("routines");
   const [draft, setDraft] = useState({
     label: trigger.label ?? "",
     cronExpression: trigger.cronExpression ?? "",
@@ -236,7 +238,7 @@ function TriggerEditor({
           {trigger.kind === "webhook" && (
             <Button variant="outline" size="sm" onClick={() => onRotate(trigger.id)}>
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Rotate secret
+              {t("rotateSecret", { defaultValue: "Rotate secret" })}
             </Button>
           )}
           <Button
@@ -245,7 +247,7 @@ function TriggerEditor({
             onClick={() => onSave(trigger.id, buildRoutineTriggerPatch(trigger, draft, getLocalTimezone()))}
           >
             <Save className="mr-1.5 h-3.5 w-3.5" />
-            Save trigger
+            {t("saveTrigger", { defaultValue: "Save trigger" })}
           </Button>
           <Button
             variant="ghost"
@@ -262,6 +264,7 @@ function TriggerEditor({
 }
 
 export function RoutineDetail() {
+  const { t } = useTranslation("routines");
   const { routineId } = useParams<{ routineId: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -382,7 +385,7 @@ export function RoutineDetail() {
 
   useEffect(() => {
     if (!routine) return;
-    setBreadcrumbs([{ label: "Routines", href: "/routines" }, { label: routine.title }]);
+    setBreadcrumbs([{ label: t("detail.breadcrumb", { defaultValue: "Routines" }), href: "/routines" }, { label: routine.title }]);
     if (!routineDefaults) return;
 
     const changedRoutine = hydratedRoutineIdRef.current !== routine.id;
@@ -440,8 +443,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to save routine",
-        body: error instanceof Error ? error.message : "Paperclip could not save the routine.",
+        title: t("detail.toastSaveFailed", { defaultValue: "Failed to save routine" }),
+        body: error instanceof Error ? error.message : t("detail.toastSaveFailedBody", { defaultValue: "Paperclip could not save the routine." }),
         tone: "error",
       });
     },
@@ -462,7 +465,7 @@ export function RoutineDetail() {
           : {}),
       }),
     onSuccess: async () => {
-      pushToast({ title: "Routine run started", tone: "success" });
+      pushToast({ title: t("detail.toastRunStarted", { defaultValue: "Routine run started" }), tone: "success" });
       setRunVariablesOpen(false);
       setActiveTab("runs");
       await Promise.all([
@@ -474,8 +477,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Routine run failed",
-        body: error instanceof Error ? error.message : "Paperclip could not start the routine run.",
+        title: t("detail.toastRunFailed", { defaultValue: "Routine run failed" }),
+        body: error instanceof Error ? error.message : t("detail.toastRunFailedBody", { defaultValue: "Paperclip could not start the routine run." }),
         tone: "error",
       });
     },
@@ -485,8 +488,8 @@ export function RoutineDetail() {
     mutationFn: (status: string) => routinesApi.update(routineId!, { status }),
     onSuccess: async (_data, status) => {
       pushToast({
-        title: "Routine saved",
-        body: status === "paused" ? "Automation paused." : "Automation enabled.",
+        title: t("detail.toastRoutineSaved", { defaultValue: "Routine saved" }),
+        body: status === "paused" ? t("detail.automationPaused", { defaultValue: "Automation paused." }) : t("detail.automationEnabled", { defaultValue: "Automation enabled." }),
         tone: "success",
       });
       await Promise.all([
@@ -496,8 +499,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to update routine",
-        body: error instanceof Error ? error.message : "Paperclip could not update the routine.",
+        title: t("detail.toastUpdateFailed", { defaultValue: "Failed to update routine" }),
+        body: error instanceof Error ? error.message : t("detail.toastUpdateFailedBody", { defaultValue: "Paperclip could not update the routine." }),
         tone: "error",
       });
     },
@@ -530,8 +533,8 @@ export function RoutineDetail() {
         });
       } else {
         pushToast({
-          title: "Trigger added",
-          body: "The routine schedule was saved.",
+          title: t("detail.toastTriggerAdded", { defaultValue: "Trigger added" }),
+          body: t("detail.toastTriggerAddedBody", { defaultValue: "The routine schedule was saved." }),
           tone: "success",
         });
       }
@@ -543,8 +546,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to add trigger",
-        body: error instanceof Error ? error.message : "Paperclip could not create the trigger.",
+        title: t("detail.toastTriggerFailed", { defaultValue: "Failed to add trigger" }),
+        body: error instanceof Error ? error.message : t("detail.toastTriggerFailedBody", { defaultValue: "Paperclip could not create the trigger." }),
         tone: "error",
       });
     },
@@ -554,8 +557,8 @@ export function RoutineDetail() {
     mutationFn: ({ id, patch }: { id: string; patch: Record<string, unknown> }) => routinesApi.updateTrigger(id, patch),
     onSuccess: async () => {
       pushToast({
-        title: "Trigger saved",
-        body: "The routine cadence update was saved.",
+        title: t("detail.toastTriggerSaved", { defaultValue: "Trigger saved" }),
+        body: t("detail.toastTriggerSavedBody", { defaultValue: "The routine cadence update was saved." }),
         tone: "success",
       });
       await Promise.all([
@@ -566,8 +569,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to update trigger",
-        body: error instanceof Error ? error.message : "Paperclip could not update the trigger.",
+        title: t("detail.toastTriggerUpdateFailed", { defaultValue: "Failed to update trigger" }),
+        body: error instanceof Error ? error.message : t("detail.toastTriggerUpdateFailedBody", { defaultValue: "Paperclip could not update the trigger." }),
         tone: "error",
       });
     },
@@ -577,7 +580,7 @@ export function RoutineDetail() {
     mutationFn: (id: string) => routinesApi.deleteTrigger(id),
     onSuccess: async () => {
       pushToast({
-        title: "Trigger deleted",
+        title: t("detail.toastTriggerDeleted", { defaultValue: "Trigger deleted" }),
         tone: "success",
       });
       await Promise.all([
@@ -588,8 +591,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to delete trigger",
-        body: error instanceof Error ? error.message : "Paperclip could not delete the trigger.",
+        title: t("detail.toastTriggerDeleteFailed", { defaultValue: "Failed to delete trigger" }),
+        body: error instanceof Error ? error.message : t("detail.toastTriggerDeleteFailedBody", { defaultValue: "Paperclip could not delete the trigger." }),
         tone: "error",
       });
     },
@@ -610,8 +613,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to rotate webhook secret",
-        body: error instanceof Error ? error.message : "Paperclip could not rotate the webhook secret.",
+        title: t("detail.toastRotateFailed", { defaultValue: "Failed to rotate webhook secret" }),
+        body: error instanceof Error ? error.message : t("detail.toastRotateFailedBody", { defaultValue: "Paperclip could not rotate the webhook secret." }),
         tone: "error",
       });
     },
@@ -651,7 +654,7 @@ export function RoutineDetail() {
   const currentProject = editDraft.projectId ? projectById.get(editDraft.projectId) ?? null : null;
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Repeat} message="Select a company to view routines." />;
+    return <EmptyState icon={Repeat} message={t("detail.selectCompany", { defaultValue: "Select a company to view routines." })} />;
   }
 
   if (isLoading) {
@@ -661,7 +664,7 @@ export function RoutineDetail() {
   if (error || !routine) {
     return (
       <p className="pt-6 text-sm text-destructive">
-        {error instanceof Error ? error.message : "Routine not found"}
+        {error instanceof Error ? error.message : t("detail.notFound", { defaultValue: "Routine not found" })}
       </p>
     );
   }
@@ -670,12 +673,12 @@ export function RoutineDetail() {
   const selectedProject = routine.projectId ? (projects?.find((project) => project.id === routine.projectId) ?? null) : null;
   const automationToggleDisabled = updateRoutineStatus.isPending || routine.status === "archived";
   const automationLabel = routine.status === "archived"
-    ? "Archived"
+    ? t("detail.archived", { defaultValue: "Archived" })
     : !routine.assigneeAgentId
-      ? "Draft"
+      ? t("detail.draft", { defaultValue: "Draft" })
       : automationEnabled
-        ? "Active"
-        : "Paused";
+        ? t("detail.active", { defaultValue: "Active" })
+        : t("detail.paused", { defaultValue: "Paused" });
   const automationLabelClassName = routine.status === "archived"
     ? "text-muted-foreground"
     : automationEnabled
@@ -689,7 +692,7 @@ export function RoutineDetail() {
         <textarea
           ref={titleInputRef}
           className="flex-1 min-w-0 resize-none overflow-hidden bg-transparent text-xl font-bold outline-none placeholder:text-muted-foreground/50"
-          placeholder="Routine title"
+          placeholder={t("detail.placeholderTitle", { defaultValue: "Routine title" })}
           rows={1}
           value={editDraft.title}
           onChange={(event) => {
@@ -738,7 +741,7 @@ export function RoutineDetail() {
               updateRoutineStatus.mutate(automationEnabled ? "paused" : "active");
             }}
             disabled={automationToggleDisabled}
-            aria-label={automationEnabled ? "Pause automatic triggers" : "Enable automatic triggers"}
+            aria-label={automationEnabled ? t("detail.ariaLabelPause", { defaultValue: "Pause automatic triggers" }) : t("detail.ariaLabelEnable", { defaultValue: "Enable automatic triggers" })}
           />
           <span className={`min-w-[3.75rem] text-sm font-medium ${automationLabelClassName}`}>
             {automationLabel}
@@ -765,7 +768,7 @@ export function RoutineDetail() {
               <Input value={secretMessage.webhookSecret} readOnly className="flex-1" />
               <Button variant="outline" size="sm" onClick={() => copySecretValue("Webhook secret", secretMessage.webhookSecret)}>
                 <Copy className="h-3.5 w-3.5 mr-1" />
-                Secret
+                {t("secret", { defaultValue: "Secret" })}
               </Button>
             </div>
           </div>
@@ -786,10 +789,10 @@ export function RoutineDetail() {
             ref={assigneeSelectorRef}
             value={editDraft.assigneeAgentId}
             options={assigneeOptions}
-            placeholder="Assignee"
-            noneLabel="No assignee"
-            searchPlaceholder="Search assignees..."
-            emptyMessage="No assignees found."
+            placeholder={t("detail.assigneePlaceholder", { defaultValue: "Assignee" })}
+            noneLabel={t("detail.noAssignee", { defaultValue: "No assignee" })}
+            searchPlaceholder={t("detail.searchAssignees", { defaultValue: "Search assignees..." })}
+            emptyMessage={t("detail.noAssigneesFound", { defaultValue: "No assignees found." })}
             onChange={(assigneeAgentId) => {
               if (assigneeAgentId) trackRecentAssignee(assigneeAgentId);
               setEditDraft((current) => ({ ...current, assigneeAgentId }));
@@ -812,7 +815,7 @@ export function RoutineDetail() {
                   <span className="truncate">{option.label}</span>
                 )
               ) : (
-                <span className="text-muted-foreground">Assignee</span>
+                <span className="text-muted-foreground">{t("detail.assigneePlaceholder", { defaultValue: "Assignee" })}</span>
               )
             }
             renderOption={(option) => {
@@ -831,10 +834,10 @@ export function RoutineDetail() {
             ref={projectSelectorRef}
             value={editDraft.projectId}
             options={projectOptions}
-            placeholder="Project"
-            noneLabel="No project"
-            searchPlaceholder="Search projects..."
-            emptyMessage="No projects found."
+            placeholder={t("detail.projectPlaceholder", { defaultValue: "Project" })}
+            noneLabel={t("detail.noProject", { defaultValue: "No project" })}
+            searchPlaceholder={t("detail.searchProjects", { defaultValue: "Search projects..." })}
+            emptyMessage={t("detail.noProjectsFound", { defaultValue: "No projects found." })}
             onChange={(projectId) => setEditDraft((current) => ({ ...current, projectId }))}
             onConfirm={() => descriptionEditorRef.current?.focus()}
             renderTriggerValue={(option) =>
@@ -847,7 +850,7 @@ export function RoutineDetail() {
                   <span className="truncate">{option.label}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Project</span>
+                <span className="text-muted-foreground">{t("detail.projectPlaceholder", { defaultValue: "Project" })}</span>
               )
             }
             renderOption={(option) => {
@@ -872,7 +875,7 @@ export function RoutineDetail() {
         ref={descriptionEditorRef}
         value={editDraft.description}
         onChange={(description) => setEditDraft((current) => ({ ...current, description }))}
-        placeholder="Add instructions..."
+        placeholder={t("detail.placeholderInstructions", { defaultValue: "Add instructions..." })}
         bordered={false}
         contentClassName="min-h-[120px] text-[15px] leading-7"
         onSubmit={() => {
@@ -947,7 +950,7 @@ export function RoutineDetail() {
           disabled={saveRoutine.isPending || !editDraft.title.trim()}
         >
           <Save className="mr-2 h-4 w-4" />
-          Save routine
+          {t("saveRoutine", { defaultValue: "Save routine" })}
         </Button>
       </div>
 
@@ -958,16 +961,16 @@ export function RoutineDetail() {
         <TabsList variant="line" className="w-full justify-start gap-1">
           <TabsTrigger value="triggers" className="gap-1.5">
             <Clock3 className="h-3.5 w-3.5" />
-            Triggers
+            {t("triggers", { defaultValue: "Triggers" })}
           </TabsTrigger>
           <TabsTrigger value="runs" className="gap-1.5">
             <Play className="h-3.5 w-3.5" />
-            Runs
+            {t("runs", { defaultValue: "Runs" })}
             {hasLiveRun && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />}
           </TabsTrigger>
 <TabsTrigger value="activity" className="gap-1.5">
             <ActivityIcon className="h-3.5 w-3.5" />
-            Activity
+            {t("activity", { defaultValue: "Activity" })}
           </TabsTrigger>
         </TabsList>
 

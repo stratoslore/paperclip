@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Navigate, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ExecutionWorkspace, Issue, Project, ProjectWorkspace } from "@paperclipai/shared";
@@ -301,6 +302,7 @@ function ExecutionWorkspaceIssuesList({
 }
 
 export function ExecutionWorkspaceDetail() {
+  const { t } = useTranslation("workspaces");
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -382,9 +384,9 @@ export function ExecutionWorkspaceDetail() {
   useEffect(() => {
     if (!workspace) return;
     const crumbs = [
-      { label: "Projects", href: "/projects" },
+      { label: t("breadcrumbs.projects", { defaultValue: "Projects" }), href: "/projects" },
       ...(project ? [{ label: project.name, href: `/projects/${projectRef}` }] : []),
-      ...(project ? [{ label: "Workspaces", href: `/projects/${projectRef}/workspaces` }] : []),
+      ...(project ? [{ label: t("breadcrumbs.workspaces", { defaultValue: "Workspaces" }), href: `/projects/${projectRef}/workspaces` }] : []),
       { label: workspace.name },
     ];
     setBreadcrumbs(crumbs);
@@ -424,10 +426,10 @@ export function ExecutionWorkspaceDetail() {
       setErrorMessage(null);
       setRuntimeActionMessage(
         action === "stop"
-          ? "Runtime services stopped."
+          ? t("detail.runtimeServicesStopped", { defaultValue: "Runtime services stopped." })
           : action === "restart"
-            ? "Runtime services restarted."
-            : "Runtime services started.",
+            ? t("detail.runtimeServicesRestarted", { defaultValue: "Runtime services restarted." })
+            : t("detail.runtimeServicesStarted", { defaultValue: "Runtime services started." }),
       );
     },
     onError: (error) => {
@@ -436,11 +438,11 @@ export function ExecutionWorkspaceDetail() {
     },
   });
 
-  if (workspaceQuery.isLoading) return <p className="text-sm text-muted-foreground">Loading workspace…</p>;
+  if (workspaceQuery.isLoading) return <p className="text-sm text-muted-foreground">{t("detail.loadingWorkspace", { defaultValue: "Loading workspace…" })}</p>;
   if (workspaceQuery.error) {
     return (
       <p className="text-sm text-destructive">
-        {workspaceQuery.error instanceof Error ? workspaceQuery.error.message : "Failed to load workspace"}
+        {workspaceQuery.error instanceof Error ? workspaceQuery.error.message : t("detail.failedToLoadWorkspace", { defaultValue: "Failed to load workspace" })}
       </p>
     );
   }
@@ -490,7 +492,7 @@ export function ExecutionWorkspaceDetail() {
           <Button variant="ghost" size="sm" asChild>
             <Link to={project ? `/projects/${projectRef}/workspaces` : "/projects"}>
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Back to all workspaces
+              {t("detail.backToAllWorkspaces", { defaultValue: "Back to all workspaces" })}
             </Link>
           </Button>
           <StatusPill>{workspace.mode}</StatusPill>
@@ -502,20 +504,20 @@ export function ExecutionWorkspaceDetail() {
 
         <div className="space-y-2">
           <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Execution workspace
+            {t("detail.executionWorkspace", { defaultValue: "Execution workspace" })}
           </div>
           <h1 className="truncate text-xl font-semibold sm:text-2xl">{workspace.name}</h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Configure the concrete runtime workspace that Paperclip reuses for this issue flow.
-            <span className="hidden sm:inline"> These settings stay attached to the execution workspace so future runs can keep local paths, repo refs, provisioning, teardown, and runtime-service behavior in sync with the actual workspace being reused.</span>
+            {t("detail.description", { defaultValue: "Configure the concrete runtime workspace that Paperclip reuses for this issue flow." })}
+            <span className="hidden sm:inline"> {t("detail.descriptionExtended", { defaultValue: "These settings stay attached to the execution workspace so future runs can keep local paths, repo refs, provisioning, teardown, and runtime-service behavior in sync with the actual workspace being reused." })}</span>
           </p>
         </div>
 
         <Tabs value={activeTab ?? "configuration"} onValueChange={(value) => handleTabChange(value as ExecutionWorkspaceTab)}>
           <PageTabBar
             items={[
-              { value: "configuration", label: "Configuration" },
-              { value: "issues", label: "Issues" },
+              { value: "configuration", label: t("detail.tabs.configuration", { defaultValue: "Configuration" }) },
+              { value: "issues", label: t("detail.tabs.issues", { defaultValue: "Issues" }) },
             ]}
             align="start"
             value={activeTab ?? "configuration"}
@@ -530,11 +532,11 @@ export function ExecutionWorkspaceDetail() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                   <div className="space-y-1">
                     <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                      Configuration
+                      {t("detail.configuration", { defaultValue: "Configuration" })}
                     </div>
-                    <h2 className="text-lg font-semibold">Workspace settings</h2>
+                    <h2 className="text-lg font-semibold">{t("detail.workspaceSettings", { defaultValue: "Workspace settings" })}</h2>
                     <p className="text-sm text-muted-foreground">
-                      Edit the concrete path, repo, branch, provisioning, teardown, and runtime overrides attached to this execution workspace.
+                      {t("detail.workspaceSettingsDescription", { defaultValue: "Edit the concrete path, repo, branch, provisioning, teardown, and runtime overrides attached to this execution workspace." })}
                     </p>
                   </div>
                   <Button
@@ -543,22 +545,22 @@ export function ExecutionWorkspaceDetail() {
                     onClick={() => setCloseDialogOpen(true)}
                     disabled={workspace.status === "archived"}
                   >
-                    {workspace.status === "cleanup_failed" ? "Retry close" : "Close workspace"}
+                    {workspace.status === "cleanup_failed" ? t("detail.retryClose", { defaultValue: "Retry close" }) : t("detail.closeWorkspace", { defaultValue: "Close workspace" })}
                   </Button>
                 </div>
 
                 <Separator className="my-5" />
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Workspace name">
+                  <Field label={t("detail.fields.workspaceName", { defaultValue: "Workspace name" })}>
                     <input
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                       value={form.name}
                       onChange={(event) => setForm((current) => current ? { ...current, name: event.target.value } : current)}
-                      placeholder="Execution workspace name"
+                      placeholder={t("detail.placeholders.workspaceName", { defaultValue: "Execution workspace name" })}
                     />
                   </Field>
-                  <Field label="Branch name" hint="Useful for isolated worktrees">
+                  <Field label={t("detail.fields.branchName", { defaultValue: "Branch name" })} hint={t("detail.hints.branchName", { defaultValue: "Useful for isolated worktrees" })}>
                     <input
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                       value={form.branchName}
@@ -569,7 +571,7 @@ export function ExecutionWorkspaceDetail() {
                 </div>
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <Field label="Working directory">
+                  <Field label={t("detail.fields.workingDirectory", { defaultValue: "Working directory" })}>
                     <input
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                       value={form.cwd}
@@ -577,7 +579,7 @@ export function ExecutionWorkspaceDetail() {
                       placeholder="/absolute/path/to/workspace"
                     />
                   </Field>
-                  <Field label="Provider path / ref">
+                  <Field label={t("detail.fields.providerRef", { defaultValue: "Provider path / ref" })}>
                     <input
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                       value={form.providerRef}
@@ -588,7 +590,7 @@ export function ExecutionWorkspaceDetail() {
                 </div>
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <Field label="Repo URL">
+                  <Field label={t("detail.fields.repoUrl", { defaultValue: "Repo URL" })}>
                     <input
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                       value={form.repoUrl}
@@ -596,7 +598,7 @@ export function ExecutionWorkspaceDetail() {
                       placeholder="https://github.com/org/repo"
                     />
                   </Field>
-                  <Field label="Base ref">
+                  <Field label={t("detail.fields.baseRef", { defaultValue: "Base ref" })}>
                     <input
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                       value={form.baseRef}
@@ -607,7 +609,7 @@ export function ExecutionWorkspaceDetail() {
                 </div>
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <Field label="Provision command" hint="Runs when Paperclip prepares this execution workspace">
+                  <Field label={t("detail.fields.provisionCommand", { defaultValue: "Provision command" })} hint={t("detail.hints.provisionCommand", { defaultValue: "Runs when Paperclip prepares this execution workspace" })}>
                     <textarea
                       className="min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none sm:min-h-28"
                       value={form.provisionCommand}
@@ -615,7 +617,7 @@ export function ExecutionWorkspaceDetail() {
                       placeholder="bash ./scripts/provision-worktree.sh"
                     />
                   </Field>
-                  <Field label="Teardown command" hint="Runs when the execution workspace is archived or cleaned up">
+                  <Field label={t("detail.fields.teardownCommand", { defaultValue: "Teardown command" })} hint={t("detail.hints.teardownCommand", { defaultValue: "Runs when the execution workspace is archived or cleaned up" })}>
                     <textarea
                       className="min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none sm:min-h-28"
                       value={form.teardownCommand}
@@ -626,7 +628,7 @@ export function ExecutionWorkspaceDetail() {
                 </div>
 
                 <div className="mt-4 grid gap-4">
-                  <Field label="Cleanup command" hint="Workspace-specific cleanup before teardown">
+                  <Field label={t("detail.fields.cleanupCommand", { defaultValue: "Cleanup command" })} hint={t("detail.hints.cleanupCommand", { defaultValue: "Workspace-specific cleanup before teardown" })}>
                     <textarea
                       className="min-h-16 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none sm:min-h-24"
                       value={form.cleanupCommand}
@@ -639,14 +641,14 @@ export function ExecutionWorkspaceDetail() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                       <div>
                         <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                          Runtime config source
+                          {t("detail.runtimeConfigSource", { defaultValue: "Runtime config source" })}
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {runtimeConfigSource === "execution_workspace"
-                            ? "This execution workspace currently overrides the project workspace runtime config."
+                            ? t("detail.runtimeSourceOverride", { defaultValue: "This execution workspace currently overrides the project workspace runtime config." })
                             : runtimeConfigSource === "project_workspace"
-                              ? "This execution workspace is inheriting the project workspace runtime config."
-                              : "No runtime config is currently defined on this execution workspace or its project workspace."}
+                              ? t("detail.runtimeSourceInherited", { defaultValue: "This execution workspace is inheriting the project workspace runtime config." })
+                              : t("detail.runtimeSourceNone", { defaultValue: "No runtime config is currently defined on this execution workspace or its project workspace." })}
                         </p>
                       </div>
                       <Button
@@ -662,7 +664,7 @@ export function ExecutionWorkspaceDetail() {
                           } : current)
                         }
                       >
-                        Reset to inherit
+                        {t("detail.resetToInherit", { defaultValue: "Reset to inherit" })}
                       </Button>
                     </div>
                   </div>
@@ -832,7 +834,7 @@ export function ExecutionWorkspaceDetail() {
                       onClick={() => controlRuntimeServices.mutate("start")}
                     >
                       {controlRuntimeServices.isPending ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                      Start
+                      {t("detail.start", { defaultValue: "Start" })}
                     </Button>
                     <Button
                       variant="outline"
@@ -841,7 +843,7 @@ export function ExecutionWorkspaceDetail() {
                       disabled={controlRuntimeServices.isPending || !effectiveRuntimeConfig || !workspace.cwd}
                       onClick={() => controlRuntimeServices.mutate("restart")}
                     >
-                      Restart
+                      {t("detail.restart", { defaultValue: "Restart" })}
                     </Button>
                     <Button
                       variant="outline"
@@ -850,7 +852,7 @@ export function ExecutionWorkspaceDetail() {
                       disabled={controlRuntimeServices.isPending || !hasActiveRuntimeServices(workspace)}
                       onClick={() => controlRuntimeServices.mutate("stop")}
                     >
-                      Stop
+                      {t("detail.stop", { defaultValue: "Stop" })}
                     </Button>
                   </div>
                 </div>
@@ -883,8 +885,8 @@ export function ExecutionWorkspaceDetail() {
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     {effectiveRuntimeConfig
-                      ? "No runtime services are currently running for this execution workspace."
-                      : "No runtime config is defined for this execution workspace yet."}
+                      ? t("detail.noRuntimeServicesRunning", { defaultValue: "No runtime services are currently running for this execution workspace." })
+                      : t("detail.noRuntimeConfigDefined", { defaultValue: "No runtime config is defined for this execution workspace yet." })}
                   </p>
                 )}
               </div>
@@ -926,7 +928,7 @@ export function ExecutionWorkspaceDetail() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No workspace operations have been recorded yet.</p>
+                  <p className="text-sm text-muted-foreground">{t("detail.noOperationsRecorded", { defaultValue: "No workspace operations have been recorded yet." })}</p>
                 )}
               </div>
             </div>

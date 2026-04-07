@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type SVGProps } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { Link, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
@@ -154,15 +156,15 @@ function sourceMeta(sourceBadge: CompanySkillSourceBadge, sourceLabel: string | 
     case "github":
       return isSkillsShManaged
         ? { icon: VercelMark, label: sourceLabel ?? "skills.sh", managedLabel: "skills.sh managed" }
-        : { icon: Github, label: sourceLabel ?? "GitHub", managedLabel: "GitHub managed" };
+        : { icon: Github, label: sourceLabel ?? i18n.t("skills:sourceGitHub", { defaultValue: "GitHub" }), managedLabel: i18n.t("skills:sourceManagedGitHub", { defaultValue: "GitHub managed" }) };
     case "url":
       return { icon: Link2, label: sourceLabel ?? "URL", managedLabel: "URL managed" };
     case "local":
-      return { icon: Folder, label: sourceLabel ?? "Folder", managedLabel: "Folder managed" };
+      return { icon: Folder, label: sourceLabel ?? i18n.t("skills:sourceFolder", { defaultValue: "Folder" }), managedLabel: i18n.t("skills:sourceManagedFolder", { defaultValue: "Folder managed" }) };
     case "paperclip":
-      return { icon: Paperclip, label: sourceLabel ?? "Paperclip", managedLabel: "Paperclip managed" };
+      return { icon: Paperclip, label: sourceLabel ?? i18n.t("skills:sourcePaperclip", { defaultValue: "Paperclip" }), managedLabel: i18n.t("skills:sourceManagedPaperclip", { defaultValue: "Paperclip managed" }) };
     default:
-      return { icon: Boxes, label: sourceLabel ?? "Catalog", managedLabel: "Catalog managed" };
+      return { icon: Boxes, label: sourceLabel ?? i18n.t("skills:sourceCatalog", { defaultValue: "Catalog" }), managedLabel: i18n.t("skills:sourceManagedCatalog", { defaultValue: "Catalog managed" }) };
   }
 }
 
@@ -250,6 +252,7 @@ function NewSkillForm({
   isPending: boolean;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation("skills");
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -260,31 +263,31 @@ function NewSkillForm({
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Skill name"
+          placeholder={t("skillNamePlaceholder", { defaultValue: "Skill name" })}
           className="h-9 rounded-none border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
         />
         <Input
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
-          placeholder="optional-shortname"
+          placeholder={t("skillSlugPlaceholder", { defaultValue: "optional-shortname" })}
           className="h-9 rounded-none border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
         />
         <Textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Short description"
+          placeholder={t("skillDescriptionPlaceholder", { defaultValue: "Short description" })}
           className="min-h-20 rounded-none border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
         />
         <div className="flex items-center justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onCancel} disabled={isPending}>
-            Cancel
+            {t("cancel", { defaultValue: "Cancel" })}
           </Button>
           <Button
             size="sm"
             onClick={() => onCreate({ name, slug: slug || null, description: description || null })}
             disabled={isPending || name.trim().length === 0}
           >
-            {isPending ? "Creating..." : "Create skill"}
+            {isPending ? t("creatingSkill", { defaultValue: "Creating..." }) : t("createSkill", { defaultValue: "Create skill" })}
           </Button>
         </div>
       </div>
@@ -411,7 +414,7 @@ function SkillList({
   if (filteredSkills.length === 0) {
     return (
       <div className="px-4 py-6 text-sm text-muted-foreground">
-        No skills match this filter.
+        {i18n.t("skills:noSkillsMatch", { defaultValue: "No skills match this filter." })}
       </div>
     );
   }
@@ -530,6 +533,7 @@ function SkillPane({
   onSave: () => void;
   savePending: boolean;
 }) {
+  const { t } = useTranslation("skills");
   const { pushToast } = useToast();
 
   if (!detail) {
@@ -539,7 +543,7 @@ function SkillPane({
     return (
       <EmptyState
         icon={Boxes}
-        message="Select a skill to inspect its files."
+        message={t("selectSkill", { defaultValue: "Select a skill to inspect its files." })}
       />
     );
   }
@@ -628,7 +632,7 @@ function SkillPane({
                   disabled={checkUpdatesPending || updateStatusLoading}
                 >
                   <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", (checkUpdatesPending || updateStatusLoading) && "animate-spin")} />
-                  Check for updates
+                  {t("checkUpdates", { defaultValue: "Check for updates" })}
                 </Button>
                 {updateStatus?.supported && updateStatus.hasUpdate && (
                   <Button
@@ -692,7 +696,7 @@ function SkillPane({
                 >
                   <span className="flex items-center gap-1.5">
                     <Eye className="h-3.5 w-3.5" />
-                    View
+                    {t("view", { defaultValue: "View" })}
                   </span>
                 </button>
                 <button
@@ -701,7 +705,7 @@ function SkillPane({
                 >
                   <span className="flex items-center gap-1.5">
                     <Code2 className="h-3.5 w-3.5" />
-                    Code
+                    {t("code", { defaultValue: "Code" })}
                   </span>
                 </button>
               </div>
@@ -709,7 +713,7 @@ function SkillPane({
             {editMode && file?.editable && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => setEditMode(false)} disabled={savePending}>
-                  Cancel
+                  {t("cancel", { defaultValue: "Cancel" })}
                 </Button>
                 <Button size="sm" onClick={onSave} disabled={savePending}>
                   <Save className="mr-1.5 h-3.5 w-3.5" />
@@ -754,6 +758,7 @@ function SkillPane({
 }
 
 export function CompanySkills() {
+  const { t } = useTranslation("skills");
   const { "*": routePath } = useParams<{ "*": string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -781,8 +786,8 @@ export function CompanySkills() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Skills", href: "/skills" },
-      ...(routeSkillId ? [{ label: "Detail" }] : []),
+      { label: t("breadcrumb", { defaultValue: "Skills" }), href: "/skills" },
+      ...(routeSkillId ? [{ label: t("detail", { defaultValue: "Detail" }) }] : []),
     ]);
   }, [routeSkillId, setBreadcrumbs]);
 
@@ -1064,7 +1069,7 @@ export function CompanySkills() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Boxes} message="Select a company to manage skills." />;
+    return <EmptyState icon={Boxes} message={t("selectCompany", { defaultValue: "Select a company to manage skills." })} />;
   }
 
   function handleAddSkillSource() {
@@ -1131,7 +1136,7 @@ export function CompanySkills() {
           <DialogHeader>
             <DialogTitle>Add a skill source</DialogTitle>
             <DialogDescription>
-              Paste a local path, GitHub URL, or `skills.sh` command into the field first.
+              {t("pastePathHint", { defaultValue: "Paste a local path, GitHub URL, or `skills.sh` command into the field first." })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
@@ -1144,7 +1149,7 @@ export function CompanySkills() {
               <span>
                 <span className="block font-medium">Browse skills.sh</span>
                 <span className="mt-1 block text-muted-foreground">
-                  Find install commands and paste one here.
+                  {t("findInstallHint", { defaultValue: "Find install commands and paste one here." })}
                 </span>
               </span>
               <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -1158,7 +1163,7 @@ export function CompanySkills() {
               <span>
                 <span className="block font-medium">Search GitHub</span>
                 <span className="mt-1 block text-muted-foreground">
-                  Look for repositories with `SKILL.md`, then paste the repo URL here.
+                  {t("lookForReposHint", { defaultValue: "Look for repositories with `SKILL.md`, then paste the repo URL here." })}
                 </span>
               </span>
               <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -1184,7 +1189,7 @@ export function CompanySkills() {
                   size="icon-sm"
                   onClick={() => scanProjects.mutate()}
                   disabled={scanProjects.isPending}
-                  title="Scan project workspaces for skills"
+                  title={t("scanProjectWorkspaces", { defaultValue: "Scan project workspaces for skills" })}
                 >
                   <RefreshCw className={cn("h-4 w-4", scanProjects.isPending && "animate-spin")} />
                 </Button>
@@ -1199,7 +1204,7 @@ export function CompanySkills() {
               <input
                 value={skillFilter}
                 onChange={(event) => setSkillFilter(event.target.value)}
-                placeholder="Filter skills"
+                placeholder={t("filterSkills", { defaultValue: "Filter skills" })}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
@@ -1208,7 +1213,7 @@ export function CompanySkills() {
               <input
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
-                placeholder="Paste path, GitHub URL, or skills.sh command"
+                placeholder={t("addSkillSourcePlaceholder", { defaultValue: "Paste path, GitHub URL, or skills.sh command" })}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               <Button
